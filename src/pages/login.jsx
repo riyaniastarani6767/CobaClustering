@@ -124,7 +124,7 @@ import {
   Card,
   Alert,
 } from "react-bootstrap";
-import API from "../api";
+import API from "../service/api";
 import metricsImg from "../assets/Metrics.png";
 
 function Login() {
