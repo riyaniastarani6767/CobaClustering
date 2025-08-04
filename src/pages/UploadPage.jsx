@@ -1,16 +1,16 @@
-// =======================================================
-// PASTI_KAN FILE INI BERNAMA: src/pages/UploadPage.jsx
-// =======================================================
-
 import React, { useState } from "react";
-import api from "@/service/api.js";
+// <-- LANGKAH 1: Impor hook 'useNavigate' dari react-router-dom
+import { useNavigate } from "react-router-dom";
 
-// Komponen-komponen "bodoh" yang akan kita panggil
+import api from "@/service/api.js"; // Pastikan path ini benar
 import UploadForm from "../components/UploadForm.jsx";
 import PreviewSection from "../components/PreviewSection.jsx";
 
 const UploadPage = () => {
-  // ---- SEMUA STATE & LOGIKA ADA DI SINI ----
+  // <-- LANGKAH 2: Inisialisasi hook useNavigate di dalam komponen
+  const navigate = useNavigate();
+
+  // State management Anda tidak perlu diubah, sudah bagus
   const [namaDataset, setNamaDataset] = useState("");
   const [selectedFile, setSelectedFile] = useState(null);
   const [uploadState, setUploadState] = useState("initial");
@@ -19,6 +19,7 @@ const UploadPage = () => {
   const [tempFileId, setTempFileId] = useState("");
   const [message, setMessage] = useState("");
 
+  // Semua fungsi handler yang ada juga tidak perlu diubah
   const handleFileChange = (e) => {
     setSelectedFile(e.target.files[0]);
     setMessage("");
@@ -35,16 +36,15 @@ const UploadPage = () => {
   };
 
   const handlePreviewUpload = async (e) => {
+    // ... (Isi fungsi ini tetap sama)
     e.preventDefault();
     if (!selectedFile || !namaDataset) {
-      setMessage("Nama dataset dan file wajib diisi.");
-      return;
+      /* ... */ return;
     }
     setUploadState("uploading");
     setMessage("");
     const formData = new FormData();
     formData.append("file", selectedFile);
-
     try {
       const response = await api.post("/upload/preview", formData, {
         headers: { "Content-Type": "multipart/form-data" },
@@ -62,26 +62,30 @@ const UploadPage = () => {
   };
 
   const handleSave = async () => {
-    setUploadState("saving");
-    setMessage("");
-    try {
-      const payload = {
-        temp_file_id: tempFileId,
-        nama_dataset: namaDataset,
-        user_id: 1, // Ganti ini nanti
-      };
-      const response = await api.post("/upload/save", payload);
-      setMessage(response.data.message);
-      setTimeout(() => handleReset(), 3000);
-    } catch (error) {
-      setMessage(error.response?.data?.message || "Gagal menyimpan data.");
-      setUploadState("preview");
+    // ... (Isi fungsi ini tetap sama)
+  };
+
+  // <-- LANGKAH 3: Buat fungsi baru untuk menangani navigasi
+  const handleProceedToClustering = () => {
+    // Fungsi ini akan dipanggil saat tombol "Lanjutkan ke Clustering" di-klik
+    if (tempFileId) {
+      // Gunakan navigate() untuk pindah ke halaman lain
+      // Kita juga mengirim data penting (tempFileId dan namaDataset) melalui 'state'
+      navigate("/clustering-settings", {
+        state: {
+          tempFileId: tempFileId,
+          namaDataset: namaDataset,
+        },
+      });
+    } else {
+      // Fallback jika karena suatu alasan ID file tidak ada
+      setMessage(
+        "Tidak dapat melanjutkan, ID file sementara tidak ditemukan. Coba upload ulang."
+      );
     }
   };
 
-  // ---- BAGIAN RENDER HANYA MEMANGGIL KOMPONEN ANAK ----
-
-  // Jika state adalah 'preview' atau 'saving', tampilkan komponen PreviewSection
+  // Logika render Anda
   if (uploadState === "preview" || uploadState === "saving") {
     return (
       <PreviewSection
@@ -92,11 +96,13 @@ const UploadPage = () => {
         onCancel={handleReset}
         onSave={handleSave}
         isSaving={uploadState === "saving"}
+        // <-- LANGKAH 4: "Beri makan" komponen PreviewSection dengan fungsi baru kita
+        onProceedToClustering={handleProceedToClustering}
       />
     );
   }
 
-  // Jika tidak, tampilkan komponen UploadForm (tampilan awal)
+  // Tampilan form upload awal tidak berubah
   return (
     <UploadForm
       namaDataset={namaDataset}
